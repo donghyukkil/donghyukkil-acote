@@ -1,12 +1,22 @@
-import 'package:donghyukkil_acote/screens/home_screen.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
+import 'repositories/data_provider.dart';
+import 'repositories/github_repository.dart';
+import 'screens/home_screen.dart';
+
 void main() {
-  runApp(const MyApp());
+  final dio = Dio();
+  final apiProvider = GithubApiProvider(dio);
+  final githubRepository = GithubRepository(apiProvider);
+
+  runApp(MyApp(githubRepository: githubRepository));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final GithubRepository githubRepository;
+
+  const MyApp({required this.githubRepository});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +25,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: HomeScreen(),
+      home: HomeScreen(githubRepository: githubRepository),
     );
   }
 }
