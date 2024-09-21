@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
 
 import '../repositories/github_repository.dart';
 import '../models/github_user.dart';
 
 class HomeScreen extends StatefulWidget {
+  final GithubRepository githubRepository;
+
+  HomeScreen({required this.githubRepository});
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final Dio dio = Dio();
-  late GithubRepository githubRepository;
-
   List<GitHubUser> users = [];
   int? since;
   bool isLoading = false;
@@ -23,7 +23,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    githubRepository = GithubRepository(dio);
     _fetchUsers(null);
 
     _scrollController.addListener(() {
@@ -47,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     try {
-      final result = await githubRepository.fetchUsers(since);
+      final result = await widget.githubRepository.fetchUsers(since);
       final newUsers = result['users'] as List<GitHubUser>;
 
       final nextSince = result['nextSince'] as int?;
