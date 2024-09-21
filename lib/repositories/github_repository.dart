@@ -1,26 +1,19 @@
-import 'package:dio/dio.dart';
-
 import '../models/github_user.dart';
 import '../utils/link_header_utils.dart';
+import 'data_provider.dart';
 
 // Note: this class interacts with the Github API.
 // this class contain methods to fetch Github users
 // and to fetch repositories for a specific user.
 
 class GithubRepository {
-  final Dio _dio;
+  final GithubApiProvider _apiProvider;
 
-  GithubRepository(this._dio);
+  GithubRepository(this._apiProvider);
 
   Future<Map<String, dynamic>> fetchUsers(int? since) async {
     try {
-      final response = await _dio.get(
-        'https://api.github.com/users',
-        queryParameters: {
-          if (since != null) 'since': since,
-          'per_page': 10,
-        },
-      );
+      final response = await _apiProvider.fetchUsers(since);
 
       if (response.statusCode == 200) {
         List<GitHubUser> users = (response.data as List)
