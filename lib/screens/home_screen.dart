@@ -5,6 +5,7 @@ import '../models/github_user.dart';
 import '../repositories/github_repository.dart';
 import '../bloc/users/github_users_bloc.dart';
 import '../utils/url_launcher_helper.dart';
+import '../screens/detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final GithubRepository githubRepository;
@@ -134,6 +135,15 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           child: ListTile(
+                            onTap: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => DetailScreen(
+                                          user: item,
+                                          githubRepository:
+                                              widget.githubRepository)));
+                            },
                             leading: SizedBox(
                               width: 80,
                               height: 80,
