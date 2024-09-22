@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../models/github_user.dart';
 import '../repositories/github_repository.dart';
 import '../bloc/users/github_users_bloc.dart';
+import '../utils/url_launcher_helper.dart';
 
 class HomeScreen extends StatefulWidget {
   final GithubRepository githubRepository;
@@ -83,35 +85,78 @@ class _HomeScreenState extends State<HomeScreen> {
                     }
                   }
 
+                  // 해당 인덱스가 리스트 범위 밖으로 벗어나지 않도록 체크
                   if (index < users.length) {
-                    final user = users[index];
-                    return Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Container(
-                        padding: const EdgeInsets.all(5),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          shape: BoxShape.rectangle,
-                          border: const Border(
-                            top: BorderSide(color: Colors.black, width: 2),
-                            left: BorderSide(color: Colors.black, width: 2),
-                            right: BorderSide(color: Colors.black, width: 2),
-                            bottom: BorderSide(color: Colors.black, width: 7),
-                          ),
-                        ),
-                        child: ListTile(
-                          leading: SizedBox(
-                            width: 80,
-                            height: 80,
-                            child: CircleAvatar(
-                              backgroundImage: NetworkImage(user.avatarUrl),
+                    final item = users[index];
+
+                    // 광고 배너 렌더링
+                    if (item == 'ad') {
+                      return GestureDetector(
+                        onTap: () => launchUrlHelper('https://taxrefundgo.kr'),
+                        child: Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Container(
+                            clipBehavior: Clip.hardEdge,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              shape: BoxShape.rectangle,
+                              border: const Border(
+                                top: BorderSide(color: Colors.black, width: 2),
+                                left: BorderSide(color: Colors.black, width: 2),
+                                right:
+                                    BorderSide(color: Colors.black, width: 2),
+                                bottom:
+                                    BorderSide(color: Colors.black, width: 7),
+                              ),
+                            ),
+                            child: Image.network(
+                              'https://placehold.it/500x100?text=ad',
                             ),
                           ),
-                          title: Text(user.login),
-                          subtitle: Text(user.htmlUrl),
                         ),
-                      ),
-                    );
+                      );
+                    }
+
+                    // 유저 데이터 렌더링
+                    if (item is GitHubUser) {
+                      return Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Container(
+                          padding: const EdgeInsets.all(5),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            shape: BoxShape.rectangle,
+                            border: const Border(
+                              top: BorderSide(color: Colors.black, width: 2),
+                              left: BorderSide(color: Colors.black, width: 2),
+                              right: BorderSide(color: Colors.black, width: 2),
+                              bottom: BorderSide(color: Colors.black, width: 7),
+                            ),
+                          ),
+                          child: ListTile(
+                            leading: SizedBox(
+                              width: 80,
+                              height: 80,
+                              child: CircleAvatar(
+                                backgroundImage: NetworkImage(item.avatarUrl),
+                              ),
+                            ),
+                            title: Row(
+                              children: [
+                                SizedBox(width: 4),
+                                Row(
+                                  children: [
+                                    Text('${index + 1}.'),
+                                    SizedBox(width: 10),
+                                    Text(item.login),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }
                   }
                   return null;
                 },

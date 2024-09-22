@@ -8,7 +8,7 @@ sealed class GithubUsersState extends Equatable {
 class GithubUserInitial extends GithubUsersState {}
 
 class GithubUserLoading extends GithubUsersState {
-  final List<GitHubUser> users;
+  final List<dynamic> users;
 
   GithubUserLoading({
     this.users = const [],
@@ -16,7 +16,7 @@ class GithubUserLoading extends GithubUsersState {
 }
 
 class GithubUserLoaded extends GithubUsersState {
-  final List<GitHubUser> users;
+  final List<dynamic> users;
   final int? nextSince;
   final bool hasMoreData;
 

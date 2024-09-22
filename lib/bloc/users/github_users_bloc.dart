@@ -3,12 +3,15 @@ import 'package:equatable/equatable.dart';
 
 import '../../repositories/github_repository.dart';
 import '../../models/github_user.dart';
+import '../../utils/list_utils.dart';
 
 part 'github_users_event.dart';
 part 'github_users_state.dart';
 
 class GithubUsersBloc extends Bloc<GithubUsersEvent, GithubUsersState> {
   final GithubRepository githubRepository;
+
+  List<GitHubUser> pureUserList = [];
 
   GithubUsersBloc(this.githubRepository) : super(GithubUserInitial()) {
     on<FetchGithubUsers>(_onFetchUsers);
@@ -38,14 +41,15 @@ class GithubUsersBloc extends Bloc<GithubUsersEvent, GithubUsersState> {
   Future<void> _onFetchUsers(
       FetchGithubUsers event, Emitter<GithubUsersState> emit) async {
     final currentState = state;
-    List<GitHubUser> users = [];
+    List<dynamic> usersWithAds = [];
 
     if (currentState is GithubUserLoaded) {
-      users = currentState.users;
+      usersWithAds =
+          currentState.users.where((user) => user is GitHubUser).toList();
     }
 
     emit(GithubUserLoading(
-      users: users,
+      users: usersWithAds,
     ));
 
     try {
@@ -54,15 +58,16 @@ class GithubUsersBloc extends Bloc<GithubUsersEvent, GithubUsersState> {
       final nextSince = result['nextSince'] as int?;
       final hasMoreData = nextSince != null;
 
+      pureUserList.addAll(newUsers);
+      usersWithAds = addAdsToUserList(pureUserList);
+
       // Note: This comment is used to simulate an API returning null when there is no more data available.
       // When the view receives hasMoreData = false, the last item in the list will display a "No more data to load" message.
 
       // final hasMoreData = false;
 
-      users.addAll(newUsers);
-
       emit(GithubUserLoaded(
-        users: users,
+        users: usersWithAds,
         nextSince: nextSince,
         hasMoreData: hasMoreData,
       ));
@@ -77,11 +82,13 @@ class GithubUsersBloc extends Bloc<GithubUsersEvent, GithubUsersState> {
 
     try {
       final result = await githubRepository.fetchUsers(null);
-      final users = result['users'] as List<GitHubUser>;
+      pureUserList = result['users'] as List<GitHubUser>;
       final nextSince = result['nextSince'] as int?;
 
+      final usersWithAds = addAdsToUserList(pureUserList);
+
       emit(GithubUserLoaded(
-        users: users,
+        users: usersWithAds,
         nextSince: nextSince,
       ));
     } catch (e) {
