@@ -6,6 +6,7 @@ import '../repositories/github_repository.dart';
 import '../bloc/users/github_users_bloc.dart';
 import '../utils/url_launcher_helper.dart';
 import '../screens/detail_screen.dart';
+import '../core/constants.dart';
 
 class HomeScreen extends StatefulWidget {
   final GithubRepository githubRepository;
@@ -50,10 +51,14 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('GitHub Users'),
+        backgroundColor: backgroundColor,
+        title: const Text(
+          'GitHub Users',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
+      body: Container(
+        color: Colors.white,
         child: BlocBuilder<GithubUsersBloc, GithubUsersState>(
           builder: (context, state) {
             if (state is GithubUserError) {
@@ -74,7 +79,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
               return ListView.builder(
                 controller: _scrollController,
-                itemCount: users.length + 1,
+                itemCount: users.length +
+                    1, // Note: +1 for loading indicator or "no more data" message
                 itemBuilder: (context, index) {
                   if (index == users.length) {
                     if (isLoading) {
@@ -86,93 +92,92 @@ class _HomeScreenState extends State<HomeScreen> {
                     }
                   }
 
-                  // 해당 인덱스가 리스트 범위 밖으로 벗어나지 않도록 체크
+                  // Note: Check that the index is within the bounds of the list.
                   if (index < users.length) {
                     final item = users[index];
 
-                    // 광고 배너 렌더링
+                    // Advertisement handling
                     if (item == 'ad') {
                       return GestureDetector(
                         onTap: () => launchUrlHelper('https://taxrefundgo.kr'),
                         child: Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: Container(
-                            clipBehavior: Clip.hardEdge,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              shape: BoxShape.rectangle,
-                              border: const Border(
-                                top: BorderSide(color: Colors.black, width: 2),
-                                left: BorderSide(color: Colors.black, width: 2),
-                                right:
-                                    BorderSide(color: Colors.black, width: 2),
-                                bottom:
-                                    BorderSide(color: Colors.black, width: 7),
+                          padding: const EdgeInsets.symmetric(horizontal: 15),
+                          child: Column(
+                            children: [
+                              Image.network(
+                                'https://placehold.it/500x100?text=ad',
                               ),
-                            ),
-                            child: Image.network(
-                              'https://placehold.it/500x100?text=ad',
-                            ),
+                              const Divider(thickness: 1, color: Colors.grey),
+                            ],
                           ),
                         ),
                       );
                     }
 
-                    // 유저 데이터 렌더링
+                    // GitHub user data rendering
                     if (item is GitHubUser) {
-                      return Padding(
-                        padding: const EdgeInsets.all(10.0),
+                      return GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => DetailScreen(
+                                      user: item,
+                                      githubRepository:
+                                          widget.githubRepository)));
+                        },
                         child: Container(
-                          padding: const EdgeInsets.all(5),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            shape: BoxShape.rectangle,
-                            border: const Border(
-                              top: BorderSide(color: Colors.black, width: 2),
-                              left: BorderSide(color: Colors.black, width: 2),
-                              right: BorderSide(color: Colors.black, width: 2),
-                              bottom: BorderSide(color: Colors.black, width: 7),
-                            ),
-                          ),
-                          child: ListTile(
-                            onTap: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => DetailScreen(
-                                          user: item,
-                                          githubRepository:
-                                              widget.githubRepository)));
-                            },
-                            leading: SizedBox(
-                              width: 80,
-                              height: 80,
-                              child: CircleAvatar(
-                                backgroundImage: NetworkImage(item.avatarUrl),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 10, horizontal: 15),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                width: 70,
+                                height: 60,
+                                child: CircleAvatar(
+                                    backgroundImage:
+                                        NetworkImage(item.avatarUrl)),
                               ),
-                            ),
-                            title: Row(
-                              children: [
-                                SizedBox(width: 4),
-                                Row(
+                              const SizedBox(width: 15),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('${index + 1}.'),
-                                    SizedBox(width: 10),
-                                    Text(item.login),
+                                    Text(
+                                      item.login,
+                                      style: const TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    Text(
+                                      item.name ?? 'No name provided',
+                                      style: const TextStyle(
+                                          fontSize: 16, color: Colors.black54),
+                                    ),
+                                    Text(
+                                      item.bio ?? 'No bio available',
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.normal,
+                                          color: Colors.grey),
+                                    ),
+                                    const Divider(
+                                        thickness: 1, color: Colors.grey),
                                   ],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
                       );
                     }
                   }
-                  return null;
+                  // Note: // Return an empty widget instead of null
+                  return const SizedBox.shrink();
                 },
               );
             }
-
             return const Center(child: Text('No data available'));
           },
         ),
