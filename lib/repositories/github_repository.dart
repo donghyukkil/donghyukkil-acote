@@ -47,15 +47,20 @@ class GithubRepository {
     }
   }
 
-  Future<List<GitHubRepo>> fetchUserRepos(String userName) async {
+  Future<Map<String, dynamic>> fetchUserRepos(String userName,
+      {int page = 1}) async {
     try {
-      final response = await _apiProvider.fetchUserRepos(userName);
+      final response = await _apiProvider.fetchUserRepos(userName, page: page);
 
       if (response.statusCode == HttpStatusCode.ok.code) {
         List<GitHubRepo> repos = (response.data as List)
             .map((repoJson) => GitHubRepo.fromJson(repoJson))
             .toList();
-        return repos;
+        final linkHeader = response.headers['link']?[0];
+
+        int? nextPage = extractPageFromLinkHeader(linkHeader);
+
+        return {'repos': repos, 'nextPage': nextPage};
       } else {
         throw Exception('Failed to load repos: ${response.statusCode}');
       }

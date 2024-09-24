@@ -20,3 +20,20 @@ int? extractSinceFromLinkHeader(String? linkHeader) {
 
   return null; // 'rel="next"'가 없으면 null 반환
 }
+
+int? extractPageFromLinkHeader(String? linkHeader) {
+  if (linkHeader == null) return null;
+
+  // 'Link' 헤더에서 'page' 값을 추출하는 정규 표현식
+  // Example linkHeader format: <https://api.github.com/repositories/12345?page=2>; rel="next", ...
+  final regExp = RegExp(r'<[^>]*[?&]page=(\d+)[^>]*>; rel="next"');
+
+  final match = regExp.firstMatch(linkHeader);
+
+  if (match != null) {
+    final page = int.tryParse(match.group(1)!);
+    return page;
+  }
+
+  return null;
+}
