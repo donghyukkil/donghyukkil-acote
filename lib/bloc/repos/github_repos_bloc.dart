@@ -10,17 +10,38 @@ part 'github_repos_state.dart';
 class GithubReposBloc extends Bloc<GithubReposEvent, GithubReposState> {
   final GithubRepository githubRepository;
 
-  GithubReposBloc(this.githubRepository) : super(RepoLoading()) {
+  GithubReposBloc(this.githubRepository) : super(const RepoLoading()) {
     on<FetchRepos>(_onFetchRepos);
   }
 
   Future<void> _onFetchRepos(
       FetchRepos event, Emitter<GithubReposState> emit) async {
     try {
-      emit(RepoLoading());
+      final currentState = state;
+      List<GitHubRepo> currentRepos = [];
 
-      final repos = await githubRepository.fetchUserRepos(event.userName);
-      emit(RepoLoaded(repos));
+      if (currentState is RepoLoaded) {
+        // Note: Keep previously loaded repos for pagination
+        currentRepos = currentState.repos;
+      }
+
+      // Note: Show loading state while keeping existing repos visible
+      emit(RepoLoading(repos: currentRepos));
+
+      final result = await githubRepository.fetchUserRepos(event.userName,
+          page: event.page);
+
+      final repos = result['repos'] as List<GitHubRepo>;
+      final nextPage = result['nextPage'] as int?;
+
+      if (repos.isNotEmpty) {
+        emit(RepoLoaded(
+          [...currentRepos, ...repos],
+          nextPage: nextPage,
+        ));
+      } else {
+        emit(NoMoreRepos());
+      }
     } catch (e) {
       // todo:  differentiate between different types of errors (like network issues or API limit errors)
       emit(RepoError('Failed to fetch repositories $e'));
@@ -43,7 +64,7 @@ class GithubReposBloc extends Bloc<GithubReposEvent, GithubReposState> {
   @override
   void onTransition(Transition<GithubReposEvent, GithubReposState> transition) {
     super.onTransition(transition);
-    print(
-        'Transition - Event: ${transition.event}, From: ${transition.currentState}, To: ${transition.nextState}');
+    // print(
+    //     'Transition - Event: ${transition.event}, From: ${transition.currentState}, To: ${transition.nextState}');
   }
 }
