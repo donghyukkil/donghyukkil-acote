@@ -29,4 +29,14 @@ class GithubApiProvider {
       'per_page': perPage,
     });
   }
+
+  Future<Response> searchUsers(String query) async {
+    try {
+      final response = await _dio.get('$baseUrl/search/users?q=$query');
+
+      return response;
+    } catch (e) {
+      throw Exception('Error occurred during search: $e');
+    }
+  }
 }
