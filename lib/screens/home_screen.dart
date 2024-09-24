@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rxdart/rxdart.dart';
 
 import '../models/github_user.dart';
 import '../repositories/github_repository.dart';
@@ -21,11 +22,28 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
+  final BehaviorSubject<String> _searchSubject = BehaviorSubject<String>();
 
   @override
   void initState() {
     super.initState();
     context.read<GithubUsersBloc>().add(FetchGithubUsers(null));
+
+    _searchSubject
+        .debounceTime(const Duration(milliseconds: 500))
+        .listen((query) {
+      if (query.isEmpty) {
+        context.read<GithubUsersBloc>().add(FetchGithubUsers(null));
+      } else {
+        context.read<GithubUsersBloc>().add(SearchGithubUsers(query));
+      }
+    });
+
+    _searchController.addListener(() {
+      final query = _searchController.text.trim();
+      _searchSubject.add(query);
+    });
 
     _scrollController.addListener(() {
       final state = context.read<GithubUsersBloc>().state;
@@ -45,6 +63,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    _searchSubject.close();
+    _searchController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -58,6 +78,24 @@ class _HomeScreenState extends State<HomeScreen> {
           'GitHub Users',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
+        bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(50.0),
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 25.0, vertical: 10),
+              child: TextField(
+                controller: _searchController,
+                decoration: const InputDecoration(
+                  hintText: 'Search GitHub User',
+                  prefixIcon: Icon(Icons.search),
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (query) {
+                  final trimmedQuery = query.trim();
+                  _searchSubject.add(trimmedQuery);
+                },
+              ),
+            )),
       ),
       body: Container(
         color: Colors.white,
