@@ -15,3 +15,12 @@ class FetchGithubUsers extends GithubUsersEvent {
 }
 
 class RefreshGithubUsers extends GithubUsersEvent {}
+
+class SearchGithubUsers extends GithubUsersEvent {
+  final String query;
+
+  SearchGithubUsers(this.query);
+
+  @override
+  List<Object> get props => [query];
+}
