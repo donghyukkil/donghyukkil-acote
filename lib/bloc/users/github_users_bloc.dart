@@ -3,7 +3,6 @@ import 'package:equatable/equatable.dart';
 
 import '../../repositories/github_repository.dart';
 import '../../models/github_user.dart';
-import '../../utils/list_utils.dart';
 
 part 'github_users_event.dart';
 part 'github_users_state.dart';
@@ -59,7 +58,6 @@ class GithubUsersBloc extends Bloc<GithubUsersEvent, GithubUsersState> {
       final hasMoreData = nextSince != null;
 
       pureUserList.addAll(newUsers);
-      usersWithAds = addAdsToUserList(pureUserList);
 
       // Note: This comment is used to simulate an API returning null when there is no more data available.
       // When the view receives hasMoreData = false, the last item in the list will display a "No more data to load" message.
@@ -67,7 +65,7 @@ class GithubUsersBloc extends Bloc<GithubUsersEvent, GithubUsersState> {
       // final hasMoreData = false;
 
       emit(GithubUserLoaded(
-        users: usersWithAds,
+        users: pureUserList,
         nextSince: nextSince,
         hasMoreData: hasMoreData,
       ));
@@ -85,10 +83,8 @@ class GithubUsersBloc extends Bloc<GithubUsersEvent, GithubUsersState> {
       pureUserList = result['users'] as List<GitHubUser>;
       final nextSince = result['nextSince'] as int?;
 
-      final usersWithAds = addAdsToUserList(pureUserList);
-
       emit(GithubUserLoaded(
-        users: usersWithAds,
+        users: pureUserList,
         nextSince: nextSince,
       ));
     } catch (e) {

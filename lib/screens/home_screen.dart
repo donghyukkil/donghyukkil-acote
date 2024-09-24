@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../models/github_user.dart';
 import '../repositories/github_repository.dart';
 import '../bloc/users/github_users_bloc.dart';
+import '../bloc/repos/github_repos_bloc.dart';
+import '../utils/list_utils.dart';
 import '../utils/url_launcher_helper.dart';
 import '../screens/detail_screen.dart';
 import '../core/constants.dart';
@@ -79,101 +81,39 @@ class _HomeScreenState extends State<HomeScreen> {
 
               return ListView.builder(
                 controller: _scrollController,
-                itemCount: users.length +
-                    1, // Note: +1 for loading indicator or "no more data" message
+                itemCount:
+                    calculateTotalItemCount(users.length, adInterval) + 1,
                 itemBuilder: (context, index) {
-                  if (index == users.length) {
-                    if (isLoading) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-
-                    if (!hasMoreData) {
-                      return const Center(child: Text('No more data to load'));
-                    }
-                  }
-
-                  // Note: Check that the index is within the bounds of the list.
                   if (index < users.length) {
-                    final item = users[index];
+                    final actualIndex = index - (index ~/ (adInterval + 1));
 
-                    // Advertisement handling
-                    if (item == 'ad') {
-                      return GestureDetector(
-                        onTap: () => launchUrlHelper('https://taxrefundgo.kr'),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 15),
-                          child: Column(
-                            children: [
-                              Image.network(
-                                'https://placehold.it/500x100?text=ad',
-                              ),
-                              const Divider(thickness: 1, color: Colors.grey),
-                            ],
-                          ),
-                        ),
-                      );
+                    // Note: Ads will be displayed before Parent Item.
+                    if (shouldInsertAd(index, adInterval)) {
+                      return _buildAdWidget();
                     }
 
-                    // GitHub user data rendering
-                    if (item is GitHubUser) {
-                      return GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => DetailScreen(
-                                      user: item,
-                                      githubRepository:
-                                          widget.githubRepository)));
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 10, horizontal: 15),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(
-                                width: 70,
-                                height: 60,
-                                child: CircleAvatar(
-                                    backgroundImage:
-                                        NetworkImage(item.avatarUrl)),
-                              ),
-                              const SizedBox(width: 15),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      item.login,
-                                      style: const TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    Text(
-                                      item.name ?? 'No name provided',
-                                      style: const TextStyle(
-                                          fontSize: 16, color: Colors.black54),
-                                    ),
-                                    Text(
-                                      item.bio ?? 'No bio available',
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.normal,
-                                          color: Colors.grey),
-                                    ),
-                                    const Divider(
-                                        thickness: 1, color: Colors.grey),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
+                    if (actualIndex < users.length) {
+                      final item = users[actualIndex];
+
+                      // GitHub user data rendering
+                      if (item is GitHubUser) {
+                        return _buildUserItem(item, actualIndex);
+                      }
                     }
+
+                    if (index == users.length) {
+                      if (isLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
+                      if (!hasMoreData) {
+                        return const Center(
+                            child: Text('No more data to load'));
+                      }
+                    }
+
+                    return const SizedBox.shrink();
                   }
-                  // Note: // Return an empty widget instead of null
                   return const SizedBox.shrink();
                 },
               );
@@ -181,6 +121,80 @@ class _HomeScreenState extends State<HomeScreen> {
             return const Center(child: Text('No data available'));
           },
         ),
+      ),
+    );
+  }
+
+  Widget _buildUserItem(GitHubUser item, int index) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BlocProvider(
+              create: (context) => GithubReposBloc(widget.githubRepository),
+              child: DetailScreen(
+                  user: item, githubRepository: widget.githubRepository),
+            ),
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 70,
+              height: 60,
+              child:
+                  CircleAvatar(backgroundImage: NetworkImage(item.avatarUrl)),
+            ),
+            const SizedBox(width: 15),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'No. ${index + 1}',
+                    style: const TextStyle(fontSize: 16, color: Colors.black),
+                  ),
+                  Text(
+                    item.login,
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    item.name ?? 'No name provided',
+                    style: const TextStyle(fontSize: 16, color: Colors.black54),
+                  ),
+                  Text(
+                    item.bio ?? 'No bio available',
+                    style: const TextStyle(
+                        fontWeight: FontWeight.normal, color: Colors.grey),
+                  ),
+                  const Divider(thickness: 1, color: Colors.grey),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAdWidget() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15),
+      child: Column(
+        children: [
+          GestureDetector(
+            onTap: () => launchUrlHelper('https://taxrefundgo.kr'),
+            child: Image.network('https://placehold.it/500x100?text=ad'),
+          ),
+          const Divider(thickness: 1, color: Colors.grey),
+        ],
       ),
     );
   }
