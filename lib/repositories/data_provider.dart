@@ -1,10 +1,10 @@
 import 'package:dio/dio.dart';
 
+import '../core/constants.dart';
+
 class GithubApiProvider {
   final Dio _dio;
   final String? _token;
-
-  static const String _baseUrl = 'https://api.github.com';
 
   GithubApiProvider(this._dio, [this._token = '']);
 
@@ -14,16 +14,19 @@ class GithubApiProvider {
     });
 
     return await _dio.get(
-      '$_baseUrl/users',
+      '$baseUrl/users',
       queryParameters: {
         if (since != null) 'since': since,
-        'per_page': 10,
+        'per_page': perPage,
       },
       options: options,
     );
   }
 
-  Future<Response> fetchUserRepos(String userName) async {
-    return await _dio.get('$_baseUrl/users/$userName/repos');
+  Future<Response> fetchUserRepos(String userName, {int page = 1}) async {
+    return await _dio.get('$baseUrl/users/$userName/repos', queryParameters: {
+      'page': page,
+      'per_page': perPage,
+    });
   }
 }

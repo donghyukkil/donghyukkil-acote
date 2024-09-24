@@ -1,5 +1,9 @@
 import 'dart:ui';
 
+const int adInterval = 9;
+const String baseUrl = 'https://api.github.com';
+const int perPage = 10;
+
 const backgroundColor = Color.fromRGBO(239, 240, 245, 1);
 Map<String, String> languageColors = {
   "ABAP": "#E8274B",
