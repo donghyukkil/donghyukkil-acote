@@ -28,6 +28,15 @@ class GithubRepository {
     try {
       final response = await _apiProvider.fetchUsers(since);
 
+      // Rate Limit 정보 확인
+      final rateLimit = response.headers['x-ratelimit-limit'];
+      final rateRemaining = response.headers['x-ratelimit-remaining'];
+      final rateReset = response.headers['x-ratelimit-reset'];
+
+      print('Rate Limit: $rateLimit');
+      print('Rate Remaining: $rateRemaining');
+      print('Rate Reset Time: $rateReset');
+
       if (response.statusCode == HttpStatusCode.ok.code) {
         List<GitHubUser> users = (response.data as List)
             .map((userJson) => GitHubUser.fromJson(userJson))
@@ -66,6 +75,23 @@ class GithubRepository {
       }
     } catch (e) {
       throw Exception('Failed to load repos $e');
+    }
+  }
+
+  Future<List<GitHubUser>> searchUsers(String query) async {
+    try {
+      final response = await _apiProvider.searchUsers(query);
+
+      if (response.statusCode == HttpStatusCode.ok.code) {
+        List<GitHubUser> users = (response.data['items'] as List)
+            .map((userJson) => GitHubUser.fromJson(userJson))
+            .toList();
+        return users;
+      } else {
+        throw Exception('Failed to search users');
+      }
+    } catch (error) {
+      throw Exception('Error searching users: $error');
     }
   }
 }
