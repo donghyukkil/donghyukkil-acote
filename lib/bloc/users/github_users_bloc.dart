@@ -15,6 +15,7 @@ class GithubUsersBloc extends Bloc<GithubUsersEvent, GithubUsersState> {
   GithubUsersBloc(this.githubRepository) : super(GithubUserInitial()) {
     on<FetchGithubUsers>(_onFetchUsers);
     on<RefreshGithubUsers>(_onRefreshUsers);
+    on<SearchGithubUsers>(_onSearchUsers);
   }
 
   @override
@@ -39,17 +40,14 @@ class GithubUsersBloc extends Bloc<GithubUsersEvent, GithubUsersState> {
 
   Future<void> _onFetchUsers(
       FetchGithubUsers event, Emitter<GithubUsersState> emit) async {
-    final currentState = state;
-    List<dynamic> usersWithAds = [];
+    if (event.since == null && pureUserList.isNotEmpty) {
+      // Note: Using cached data
+      emit(GithubUserLoaded(users: pureUserList, hasMoreData: true));
 
-    if (currentState is GithubUserLoaded) {
-      usersWithAds =
-          currentState.users.where((user) => user is GitHubUser).toList();
+      return;
     }
 
-    emit(GithubUserLoading(
-      users: usersWithAds,
-    ));
+    emit(GithubUserLoading(users: pureUserList));
 
     try {
       final result = await githubRepository.fetchUsers(event.since);
@@ -89,6 +87,38 @@ class GithubUsersBloc extends Bloc<GithubUsersEvent, GithubUsersState> {
       ));
     } catch (e) {
       emit(GithubUserError('Failed to refresh users $e'));
+    }
+  }
+
+  Future<void> _onSearchUsers(
+      SearchGithubUsers event, Emitter<GithubUsersState> emit) async {
+    final query = event.query.trim();
+
+    if (query.isEmpty) {
+      if (pureUserList.isNotEmpty) {
+        // 사용자가 입력값을 모두 삭제했으므로, pureUserList를 다시 사용
+        emit(GithubUserLoaded(users: pureUserList, hasMoreData: true));
+      } else {
+        // 캐시된 데이터가 없으면 다시 데이터를 패칭
+        emit(GithubUserLoading());
+        add(FetchGithubUsers(null)); // FetchGithubUsers 이벤트 재실행
+      }
+      return;
+    }
+
+    if (state is GithubUserLoaded) {
+      emit(GithubUserLoading(users: (state as GithubUserLoaded).users));
+    } else if (state is GithubUserLoading) {
+      emit(GithubUserLoading(users: (state as GithubUserLoading).users));
+    } else {
+      emit(GithubUserLoading(users: []));
+    }
+
+    try {
+      final result = await githubRepository.searchUsers(event.query);
+      emit(GithubUserLoaded(users: result));
+    } catch (e) {
+      emit(GithubUserError('Failed to search users'));
     }
   }
 }
