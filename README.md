@@ -64,11 +64,11 @@ Bloc은 MVVM에서 ViewModel에 대응한다고 할 수 있습니다. 하지만 
 Bloc이 상태 관리에 체계와 강제성을 부여합니다. 그 방식을 비유하자면 Bloc은 argument로 event, 상태 값을 넣어서 새로운 상태를 리턴하는 거대한 함수라고 할 수 있습니다. 
 BLoC 방식에서는 상태와 이벤트를 명확하게 분리합니다. 이벤트가 발생하면 BLoC이 그에 따라 상태를 계산하고 출력합니다.
 
-	1.	이벤트 트리거: 사용자가 특정 액션을 수행하면 이벤트가 발생합니다. 예를 들어,GitHub 사용자 목록을 불러오고자 한다면 FetchGithubUsers 이벤트가 발생합니다.
+ - 이벤트 트리거: 사용자가 특정 액션을 수행하면 이벤트가 발생합니다. 예를 들어,GitHub 사용자 목록을 불러오고자 한다면 FetchGithubUsers 이벤트가 발생합니다.
 
-	2.	상태 전이: 이벤트가 발생하면, GithubUsersBloc에서 그 이벤트에 맞는 상태 전이가 실행됩니다. 예를 들어, API 호출 전에는 GithubUserLoading 상태가 발생하고, 데이터를 성공적으로 가져오면 GithubUserLoaded 상태로 전이됩니다.
+ - 상태 전이: 이벤트가 발생하면, GithubUsersBloc에서 그 이벤트에 맞는 상태 전이가 실행됩니다. 예를 들어, API 호출 전에는 GithubUserLoading 상태가 발생하고, 데이터를 성공적으로 가져오면 GithubUserLoaded 상태로 전이됩니다.
 
-	3.	다음 상태 반환: 상태 전이가 완료되면 새로운 상태가 emit되어 UI에 반영됩니다.
+ - 다음 상태 반환: 상태 전이가 완료되면 새로운 상태가 emit되어 UI에 반영됩니다.
 
 상태를 중앙에서 관리하고(Bloc) 이벤트를 발생시켜서 상태를 업데이트하는 명확한 패턴을 준수하게끔 개발자들에게 강제할 수 있기 때문에, Provider와는 다르게 상태 관리고 일관적이고 체계적으로 느껴졌습니다. 
 그래서 Bloc의 상태 업데이트 방식을 일종의 도식처럼 느껴졌고. 소제목에서와 같은 표현식으로 Bloc의 작동방식을 비유해보고자 했습니다.
@@ -79,57 +79,25 @@ BLoC 방식에서는 상태와 이벤트를 명확하게 분리합니다. 이벤
 
 GithubUsersBloc Unit Test:
 
-	•	Fetching users 성공: FetchGithubUsers(null) 이벤트 트리거 -> GithubUserLoading -> GithubUserLoaded 상태로 전환.
-	•	사용자 가져오기 실패 처리: FetchGithubUsers(null) 이벤트 트리거 -> GithubUserLoading -> GithubUserError 상태로 전환.
-	•	사용자 검색: SearchGithubUsers('user3') 이벤트 트리거 -> GithubUserLoading -> 빈 GithubUserLoaded 상태로 전환.
-	•	사용자 목록 새로고침: RefreshGithubUsers() 이벤트 트리거 -> GithubUserLoading -> GithubUserLoaded 상태로 전환.
+- Fetching users 성공: FetchGithubUsers(null) 이벤트 트리거 -> GithubUserLoading -> GithubUserLoaded 상태로 전환.
+- 가져오기 실패 처리: FetchGithubUsers(null) 이벤트 트리거 -> GithubUserLoading -> GithubUserError 상태로 전환.
+- 검색: SearchGithubUsers('user3') 이벤트 트리거 -> GithubUserLoading -> 빈 GithubUserLoaded 상태로 전환.
+- 사용자 목록 새로고침: RefreshGithubUsers() 이벤트 트리거 -> GithubUserLoading -> GithubUserLoaded 상태로 전환.
 
 HomeScreen Widget Test:
 
-	•	로딩 중 로딩 인디케이터 표시: GithubUserLoading 상태일 때 CircularProgressIndicator 확인.
-	•	사용자 데이터 로드: GithubUserLoaded 상태에서 user1, user2가 화면에 표시되는지 확인.
-	•	검색어 입력 시 검색 트리거: 검색어 입력 후 SearchGithubUsers('user3') 이벤트가 BLoC에 전달되는지 확인.
+ - 로딩 중 로딩 인디케이터 표시: GithubUserLoading 상태일 때 CircularProgressIndicator 확인.
+ - 사용자 데이터 로드: GithubUserLoaded 상태에서 user1, user2가 화면에 표시되는지 확인.
+ - 검색어 입력 시 검색 트리거: 검색어 입력 후 SearchGithubUsers('user3') 이벤트가 BLoC에 전달되는지 확인.
 
 DetailScreen Widget Test:
 
-	•	디테일 화면 스크롤 시 더 많은 저장소 로드: 스크롤 시 FetchRepos(testUsers[0].login, page: 2) 이벤트 트리거 확인.
-	•	더 이상 로드할 데이터가 없을 때 “No more data to load” 메시지 표시: 저장소가 없을 때 하단 스크롤 시 메시지 표시 확인.
+ - 디테일 화면 스크롤 시 더 많은 저장소 로드: 스크롤 시 FetchRepos(testUsers[0].login, page: 2) 이벤트 트리거 확인.
+ - 더이상 로드할 데이터가 없을 때 “No more data to load” 메시지 표시: 저장소가 없을 때 하단 스크롤 시 메시지 표시 확인.
 
 ### 커버리지
+<img width="589" alt="스크린샷 2024-09-26 오후 5 53 22" src="https://github.com/user-attachments/assets/bf20f165-340f-4ffc-bad6-4551277b6920">
 
----------------------------------------------|---------|---------|---------|-------------------|
-File                                         |% Branch | % Funcs | % Lines | Uncovered Line #s |
----------------------------------------------|---------|---------|---------|-------------------|
-lib/                                         |         |         |         |                   |
-main.dart                                   |    0.00 |    0.00 |    0.00 |    no unit testing|
-lib/bloc/repos/                              |         |         |         |                   |
-github_repos_bloc.dart                      |  100.00 |  100.00 |    0.00 |...1,53,57,59,64,66|
-github_repos_event.dart                     |  100.00 |  100.00 |   66.67 |                6,7|
-github_repos_state.dart                     |  100.00 |  100.00 |   25.00 |...6,25,26,34,36,37|
-lib/bloc/users/                              |         |         |         |                   |
-github_users_bloc.dart                      |  100.00 |  100.00 |   79.55 |...,104,111,113,122|
-github_users_event.dart                     |  100.00 |  100.00 |   50.00 |          4,5,13,14|
-github_users_state.dart                     |  100.00 |  100.00 |  100.00 |                   |
-lib/core/                                    |         |         |         |                   |
-constants.dart                              |  100.00 |  100.00 |  100.00 |                   |
-lib/models/                                  |         |         |         |                   |
-github_repo.dart                            |  100.00 |  100.00 |    2.00 |...8,89,90,91,92,93|
-github_user.dart                            |  100.00 |  100.00 |    2.86 |...,116,117,118,119|
-lib/repositories/                            |         |         |         |                   |
-data_provider.dart                          |  100.00 |  100.00 |    0.00 |...0,26,27,33,35,39|
-github_repository.dart                      |  100.00 |  100.00 |    0.00 |...6,87,88,89,93,96|
-lib/screens/                                 |         |         |         |                   |
-detail_screen.dart                          |  100.00 |  100.00 |   82.09 |...36,62,66,153,154|
-home_screen.dart                            |  100.00 |  100.00 |   71.88 |...,228,229,230,231|
-lib/utils/                                   |         |         |         |                   |
-color_converter.dart                        |  100.00 |  100.00 |  100.00 |                   |
-link_header_utils.dart                      |  100.00 |  100.00 |    0.00 |...5,17,24,29,31,34|
-list_utils.dart                             |  100.00 |  100.00 |  100.00 |                   |
-url_launcher_helper.dart                    |  100.00 |  100.00 |    0.00 |          3,4,6,7,9|
----------------------------------------------|---------|---------|---------|-------------------|
-All files with unit testing                 |  100.00 |  100.00 |   42.11 |                   |
----------------------------------------------|---------|---------|---------|-------------------|
-gk
 ## 기술스택
 
 - Front-end:
