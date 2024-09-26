@@ -172,8 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
           MaterialPageRoute(
             builder: (context) => BlocProvider(
               create: (context) => GithubReposBloc(widget.githubRepository),
-              child: DetailScreen(
-                  user: item, githubRepository: widget.githubRepository),
+              child: DetailScreen(user: item),
             ),
           ),
         );

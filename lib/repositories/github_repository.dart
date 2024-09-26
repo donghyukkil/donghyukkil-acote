@@ -29,13 +29,13 @@ class GithubRepository {
       final response = await _apiProvider.fetchUsers(since);
 
       // Rate Limit 정보 확인
-      final rateLimit = response.headers['x-ratelimit-limit'];
-      final rateRemaining = response.headers['x-ratelimit-remaining'];
-      final rateReset = response.headers['x-ratelimit-reset'];
-
-      print('Rate Limit: $rateLimit');
-      print('Rate Remaining: $rateRemaining');
-      print('Rate Reset Time: $rateReset');
+      // final rateLimit = response.headers['x-ratelimit-limit'];
+      // final rateRemaining = response.headers['x-ratelimit-remaining'];
+      // final rateReset = response.headers['x-ratelimit-reset'];
+      //
+      // print('Rate Limit: $rateLimit');
+      // print('Rate Remaining: $rateRemaining');
+      // print('Rate Reset Time: $rateReset');
 
       if (response.statusCode == HttpStatusCode.ok.code) {
         List<GitHubUser> users = (response.data as List)
@@ -65,6 +65,7 @@ class GithubRepository {
         List<GitHubRepo> repos = (response.data as List)
             .map((repoJson) => GitHubRepo.fromJson(repoJson))
             .toList();
+
         final linkHeader = response.headers['link']?[0];
 
         int? nextPage = extractPageFromLinkHeader(linkHeader);
@@ -86,6 +87,7 @@ class GithubRepository {
         List<GitHubUser> users = (response.data['items'] as List)
             .map((userJson) => GitHubUser.fromJson(userJson))
             .toList();
+
         return users;
       } else {
         throw Exception('Failed to search users');

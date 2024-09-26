@@ -103,6 +103,7 @@ class GithubUsersBloc extends Bloc<GithubUsersEvent, GithubUsersState> {
         emit(GithubUserLoading());
         add(FetchGithubUsers(null)); // FetchGithubUsers 이벤트 재실행
       }
+
       return;
     }
 

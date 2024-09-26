@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../models/github_user.dart';
-import '../repositories/github_repository.dart';
 import '../utils/color_converter.dart';
 import '../utils/url_launcher_helper.dart';
 import '../bloc/repos/github_repos_bloc.dart';
@@ -10,10 +9,8 @@ import '../core/constants.dart';
 
 class DetailScreen extends StatefulWidget {
   final GitHubUser user;
-  final GithubRepository githubRepository;
 
-  const DetailScreen(
-      {super.key, required this.user, required this.githubRepository});
+  const DetailScreen({super.key, required this.user});
 
   @override
   State<DetailScreen> createState() => _DetailScreenState();
@@ -70,7 +67,6 @@ class _DetailScreenState extends State<DetailScreen> {
           final isLoading = state is RepoLoading;
           final hasMoreData = state is RepoLoaded && state.nextPage != null;
 
-          //todo 기능 개선, users/특정 사용자로 bio, name, follows로 user모델 업데이트. input 사용자 검색
           return Container(
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
             color: Colors.white,
